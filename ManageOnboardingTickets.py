@@ -21,7 +21,7 @@ class ManageOnboardingTickets:
 
     def getopentickets(self):
         try:
-            with open('Access_Token_Text', 'r') as file:
+            with open('Enter Filename here', 'r') as file:
                 access_token_str = file.read()
             self.headers['Authorization'] = f"Zoho-oauthtoken {access_token_str}"
             response = requests.get(url = self.url, headers = self.headers, params = self.params)
