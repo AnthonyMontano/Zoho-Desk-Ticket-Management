@@ -3,28 +3,37 @@ import requests
 import re
 import json
 from bs4 import BeautifulSoup
+
+
+with open('C:/Users/Anthony/Zoho/Scripts/Cloned-Repo/Zoho-Desk-Ticket-Management/Config Files/ZohoConfigFileTest.json' ,'r') as file:
+    config_data = json.load(file)
+offboardingheaders = config_data['apiheaders']
+offboardingparams = config_data['offboardingparams']
+offboardingurl = config_data['apiurl']
+
 """Show this as new version in Github"""
 """The purpose of this class is to access offboarding ticket data and store it for furture scripting"""
 class ManageOffboardingTickets:
 
     def __init__(self):
-        self.url = "https://desk.zoho.com/api/v1/tickets"
-        self.headers = {"orgId":"669421986"}
-        self.params = {'departmentIds': '279921000042815136', 'status':'open'}
+        self.offboardingurl = offboardingurl
+        self.offboardingheaders = offboardingheaders
+        self.offboardingparams = offboardingparams
         self.ticketdata = ""
         self.ticketIds = []
         self.jsoncontent = ""
         self.jsonstring = ""
         self.content = ""
+        self.ticketnumbers = []
+        self.ticketidsiter = []
 
 
     def getopenoffboardtickets(self):
             try:
-                with open('Access_Token_Text_Read', 'r') as file:
+                with open('C:/Users/Anthony/Zoho/Scripts/Cloned-Repo/Zoho-Desk-Ticket-Management/Config Files/Access_Token_Text_Read', 'r') as file:
                     access_token_str = file.read()
-                #access_token_str = open('Access_Token_Text', 'r').read()
-                self.headers['Authorization'] = f"Zoho-oauthtoken {access_token_str}"
-                response = requests.get(url = self.url, headers = self.headers, params = self.params)
+                self.offboardingheaders['Authorization'] = f"Zoho-oauthtoken {access_token_str}"
+                response = requests.get(url = self.offboardingurl, headers = self.offboardingheaders, params = self.offboardingparams)
                 status_code = response.status_code
                 match status_code:
                     case 200:
@@ -34,7 +43,9 @@ class ManageOffboardingTickets:
                             ticket_id = ticket.get('id')
                             ticket__number = ticket.get('ticketNumber')
                             self.ticketIds.append(ticket_id)
-                            self.ticketdata += f"Ticket Number: {ticket__number}\nTicket ID: {ticket_id}\n\n"
+                            self.ticketnumbers.append(ticket__number)
+                            self.ticketidsiter.append(ticket_id)
+
                     case 201:
                         print('Status Code: Created')
                     case 204:
@@ -70,12 +81,12 @@ class ManageOffboardingTickets:
     def getopenoffboardticketcontent(self):
         startofcontenturl = "https://desk.zoho.com/api/v1/tickets/"
         endofcontenturl = "/latestThread"
-        with open('Access_Token_Text_Read', 'r') as file:
+        with open('C:/Users/Anthony/Zoho/Scripts/Cloned-Repo/Zoho-Desk-Ticket-Management/Config Files/Access_Token_Text_Read', 'r') as file:
                 access_token_str = file.read()
-        self.headers['Authorization'] = f"Zoho-oauthtoken {access_token_str}"
+        self.offboardingheaders['Authorization'] = f"Zoho-oauthtoken {access_token_str}"
         for ticketid in self.ticketIds:
             contenturl = f"{startofcontenturl}{ticketid}{endofcontenturl}"
-            response = requests.get(contenturl, headers=self.headers)
+            response = requests.get(contenturl, headers=self.offboardingheaders)
             content_status_code = response.status_code
             match content_status_code:
                 case 200:
@@ -113,30 +124,40 @@ class ManageOffboardingTickets:
 
     def prepoffboarddata(self):
         """"""
+        z = self.ticketnumbers.pop(0)
+        y = self.ticketidsiter.pop(0)
+
+        all_data = []
+
         a = self.jsoncontent['content']
         text=json.dumps(a, sort_keys=True, indent=4)
         soup = BeautifulSoup(text, 'html.parser')
         text_content = re.sub(r'<.*?>', '', soup.get_text(separator='\n'))
-        
         all_text_pattern = re.compile(r'Employee Name:(.*?)Completed By:', re.DOTALL)
-        print(all_text_pattern)
         all_text_match = re.search(all_text_pattern, text_content)
         if all_text_match:
-            str = (f"{all_text_match.group(1).strip()}")
+            str = (f"{all_text_match.group(0).strip()}")
             lines = str.split('\n')
-            data_dict = {}
+            data_dict = {'Ticket Number': z, 'Ticket ID': y}
             for line in lines:
                 parts = line.split(':')
                 key = parts[0].strip()
                 value = parts[1].strip() if len(parts) > 1 else '' 
                 data_dict[key] = value
-            with open("offboarding.json", 'a') as f: 
-                for key, value in data_dict.items(): 
-                    f.write('%s:%s\n' % (key, value))
-                f.write('\n')
-        else:
-            "Ticket doesnt seem to be in the smartsheet format needed."
+            all_data.append(data_dict)
 
+            try:
+                with open("C:/Users/Anthony/Zoho/Scripts/Cloned-Repo/Zoho-Desk-Ticket-Management/Config Files/OpenOffboardsData.json", 'r') as existing_file:
+                    existing_data = json.load(existing_file)
+            except FileNotFoundError:
+                existing_data = []
+
+        # Append new data to the existing content
+            existing_data.extend(all_data)
+
+        # Write the combined data back to the file
+            with open("C:/Users/Anthony/Zoho/Scripts/Cloned-Repo/Zoho-Desk-Ticket-Management/Config Files/OpenOffboardsData.json", 'w') as f:
+                json.dump(existing_data, f, indent=4)
 
 ticket = ManageOffboardingTickets()
 ticket.getopenoffboardtickets()
