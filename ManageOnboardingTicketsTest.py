@@ -1,15 +1,15 @@
-from 
+from TokenManagerTest import TokenManagerTest
 import requests
 import re
 import json
 from bs4 import BeautifulSoup
 
 
-with open('OnboardingConfigFileTest.json' ,'r') as file:
+with open('C:/Users/Anthony/Zoho/Scripts/Cloned-Repo/Zoho-Desk-Ticket-Management/Config Files/ZohoConfigFileTest.json' ,'r') as file:
     config_data = json.load(file)
-mttheaders = config_data['mttheaders']
-mttparams = config_data['mttparams']
-mtturl = config_data['mtturl']
+onboardingheaders = config_data['apiheaders']
+onboardingparams = config_data['onboardingparams']
+onboardingurl = config_data['apiurl']
 
 
 """The Purpose of this class it to access Onboarding ticket data and store it in a understandable way for comprehension and future scripting """
@@ -17,9 +17,9 @@ mtturl = config_data['mtturl']
 class ManageOnboardingTicketsTest:
 
     def __init__(self):
-        self.mttheaders = mttheaders
-        self.mttparams = mttparams
-        self.mtturl = mtturl
+        self.onboardingheaders = onboardingheaders
+        self.onboardingparams = onboardingparams
+        self.onboardingurl = onboardingurl
         self.ticketdata = ""
         self.ticketIds = []
         self.jsoncontent = ""
@@ -32,10 +32,10 @@ class ManageOnboardingTicketsTest:
     def getopentickets(self):
         try:
             #ticketids = []
-            with open('Access_Token_Text_Read', 'r') as file:
+            with open('C:/Users/Anthony/Zoho/Scripts/Cloned-Repo/Zoho-Desk-Ticket-Management/Config Files/Access_Token_Text_Read', 'r') as file:
                 access_token_str = file.read()
-            self.mttheaders['Authorization'] = f"Zoho-oauthtoken {access_token_str}"
-            response = requests.get(url = self.mtturl, headers = self.mttheaders, params = self.mttparams)
+            self.onboardingheaders['Authorization'] = f"Zoho-oauthtoken {access_token_str}"
+            response = requests.get(url = self.onboardingurl, headers = self.onboardingheaders, params = self.onboardingparams)
             status_code = response.status_code
             match status_code:
                 case 200:
@@ -83,13 +83,13 @@ class ManageOnboardingTicketsTest:
     def GetOnboardticketContent(self):
         startofcontenturl = "https://desk.zoho.com/api/v1/tickets/"
         endofcontenturl = "/latestThread"
-        with open('Access_Token_Text_Read', 'r') as file:
+        with open('C:/Users/Anthony/Zoho/Scripts/Cloned-Repo/Zoho-Desk-Ticket-Management/Config Files/Access_Token_Text_Read', 'r') as file:
                 access_token_str = file.read()
-        self.mttheaders['Authorization'] = f"Zoho-oauthtoken {access_token_str}"
+        self.onboardingheaders['Authorization'] = f"Zoho-oauthtoken {access_token_str}"
         for ticketid in self.ticketIds:
             
             contenturl = f"{startofcontenturl}{ticketid}{endofcontenturl}"
-            response = requests.get(contenturl, headers=self.mttheaders)
+            response = requests.get(contenturl, headers=self.onboardingheaders)
             content_status_code = response.status_code
             match content_status_code:
                 case 200:
@@ -152,7 +152,7 @@ class ManageOnboardingTicketsTest:
             all_data.append(data_dict)
 
             try:
-                with open("OnboardingData1.json", 'r') as existing_file:
+                with open("C:/Users/Anthony/Zoho/Scripts/Cloned-Repo/Zoho-Desk-Ticket-Management/Config Files/OpenOnboardsData.json", 'r') as existing_file:
                     existing_data = json.load(existing_file)
             except FileNotFoundError:
                 existing_data = []
@@ -161,7 +161,7 @@ class ManageOnboardingTicketsTest:
             existing_data.extend(all_data)
 
         # Write the combined data back to the file
-            with open("OnboardingData1.json", 'w') as f:
+            with open("C:/Users/Anthony/Zoho/Scripts/Cloned-Repo/Zoho-Desk-Ticket-Management/Config Files/OpenOnboardsData.json", 'w') as f:
                 json.dump(existing_data, f, indent=4)
             
                 
