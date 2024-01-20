@@ -6,7 +6,7 @@ if __name__ == '__main__':
     print('This class is not meant to be ran directly')
 else:
 
-    with open('OnboardingConfigFileTest.json' ,'r') as file:
+    with open('C:/Users/Anthony/Zoho/Scripts/Cloned-Repo/Zoho-Desk-Ticket-Management/Config Files/ZohoConfigFileTest.json' ,'r') as file:
         config_data = json.load(file)
 
     read_access_token_url = config_data['read_access_token_url']
@@ -40,7 +40,7 @@ else:
                             print('Status Code: OK')
                             access_token_read = jsondata['access_token']
                             """Storing token in a text file so it can be retrieved from other class for an hour"""
-                            with open("Access_Token_Text_Read", "w") as access_token_text_read:
+                            with open("C:/Users/Anthony/Zoho/Scripts/Cloned-Repo/Zoho-Desk-Ticket-Management/Config Files/Access_Token_Text_Read", "w") as access_token_text_read:
                                 access_token_text_read.write(access_token_read)
                         case 201:
                             print('Status Code: Created')
@@ -76,7 +76,7 @@ else:
                             print('Status Code: OK')
                             access_token_update = jsondata['access_token']
                             """Storing token in a text file so it can be retrieved from other class for an hour"""
-                            with open("Access_Token_Text_Update", "w") as access_token_text_update:
+                            with open("C:/Users/Anthony/Zoho/Scripts/Cloned-Repo/Zoho-Desk-Ticket-Management/Config Files/Access_Token_Text_Update", "w") as access_token_text_update:
                                 access_token_text_update.write(access_token_update)
                         case 201:
                             print('Status Code: Created')
