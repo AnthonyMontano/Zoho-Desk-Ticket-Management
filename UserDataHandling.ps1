@@ -3,21 +3,7 @@ $offboardinfo = $offboarddata | ConvertFrom-Json
 
 # Create an array to store offboard objects
 $offboardObjects = @()
-
-<#foreach ($offboard in $offboardinfo.GetEnumerator()) {
-    # Create a custom object for each offboard entry
-    $offboardObject = [PSCustomObject]@{
-        'Ticket Number'      = $offboard.Value.'Ticket Number' 
-        'Ticket ID'      = $offboard.Value.'Ticket ID'
-        'Employee Name'      = $offboard.Value.'Employee Name' 
-        'Employee Location'      = $offboard.Value.'Employee Location'
-        'Title'      = $offboard.Value.'Title' 
-        'AssociateID'      = $offboard.Value.'Associate ID'
-        'Department'       = $offboard.Value.'Department'
-        'Email Forwarding'      = $offboard.Value.'Email Forwarding' 
-        # Add more properties as needed
-    }#>
-    
+   
     foreach ($offboard in $offboardinfo) {
         # Create a custom object for each offboard entry
         $offboardObject = $offboard | Select-Object @{
@@ -35,7 +21,11 @@ $offboardObjects = @()
         }, @{
             Name = 'Department'; Expression = { $_.'Department'}
         }, @{
-            Name = 'Email Forwarding' ; Expression = { $_.'Email Forwarding' }
+            Name = 'Email Forwarding' ; Expression = { $_.'Email Forw111111111111arding' }
+        }, @{
+            Name = 'Term Time' ; Expression = { $_.'Term Time' }
+        }, @{
+            Name = 'Term Date' ; Expression = { $_.'Term Date' }
         }
 
     # Add the object to the array
@@ -46,6 +36,36 @@ $offboardObjects = @()
 # You can perform actions on each object in the array
 foreach ($obj in $offboardObjects) {
     # Example: Print information about each offboard entry
-    Write-Host "Processing offboard for User: $($obj.'Employee Name'), $($obj.'Ticket Number'), $($obj.'Ticket ID'), $($obj."Department"), $($obj.'Employee Location'), $($obj."Title"), Department: $($obj."Department")"
-    # Add your custom logic here
+    #Write-Host "Processing offboard for User: $($obj.'Term Date'),$($obj.'Term Time'),$($obj.'Employee Name'), $($obj.'Ticket Number'), $($obj.'Ticket ID'), $($obj."Department"), $($obj.'Employee Location'), $($obj."Title"), Department: $($obj."Department")"
+    $TermDate = $obj."Term Date"
+    $termTime = $obj."Term Time"
+    $termTicket = $obj."Ticket Number"
+    $timenoon = "AM 9-12noon"
+    $timeevening = "PM 12-6pm" 
+    $Month = $TermDate.Substring(0,2)
+    $Day = $TermDate.Substring(3,2)
+    $Year = "20" + $TermDate.Substring(6,2)
+    $tasktimenoon = $Year + "-" + $Month + "-" + $Day + " " + "12:00:00"
+    $tasktimeevening = $Year + "-" + $Month + "-" + $Day + " " + "05:00:00"
+    #$tasktimenoon = "2024" + "-" + "01" + "-" + "22" + " " + "19:59:00"
+    #$tasktimeevening = "2024" + "-" + "01" + "-" + "22" + " " + "19:59:00"
+    
+    if ($termTime -eq $timenoon){
+        $tasktime = $tasktimenoon
+    }
+    elseif($termTime -eq $timeevening){
+        $tasktime = $tasktimeevening
+    }
+    else{
+        Write-Host "This is unprecedented"
+    }
+    
+    $actions = (New-ScheduledTaskAction -Execute 'C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe' -Argument '-file "C:\users\Anthony\Zoho\Scripts\Cloned-Repo\Zoho-Desk-Ticket-Management\HelloWorld.Ps1"')
+    $trigger = New-ScheduledTaskTrigger -Once -At $tasktime
+    $principal = New-ScheduledTaskPrincipal -UserId 'NT AUTHORITY\SYSTEM' -RunLevel Highest
+    $settings = New-ScheduledTaskSettingsSet -RunOnlyIfNetworkAvailable -WakeToRun
+    $task = New-ScheduledTask -Action $actions -Principal $principal -Trigger $trigger -Settings $settings
+    
+    Register-ScheduledTask -TaskName $termTicket -InputObject $task
+    
 }
