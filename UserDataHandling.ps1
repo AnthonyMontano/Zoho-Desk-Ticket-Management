@@ -21,7 +21,7 @@ $offboardObjects = @()
         }, @{
             Name = 'Department'; Expression = { $_.'Department'}
         }, @{
-            Name = 'Email Forwarding' ; Expression = { $_.'Email Forw111111111111arding' }
+            Name = 'Email Forwarding' ; Expression = { $_.'Email Forwarding' }
         }, @{
             Name = 'Term Time' ; Expression = { $_.'Term Time' }
         }, @{
