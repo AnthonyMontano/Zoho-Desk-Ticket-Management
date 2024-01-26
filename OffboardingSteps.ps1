@@ -1,5 +1,3 @@
-
-
 function GetData{
     $offboarddata = Get-Content -Raw -Path "C:/Users/anthonym/Zoho/env/Scripts/Zoho-Desk-Ticket-Management/Config Files/OpenOffboardsData.json"
     $offboardinfo = $offboarddata | ConvertFrom-Json 
