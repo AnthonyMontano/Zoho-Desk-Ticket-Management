@@ -110,7 +110,7 @@ function RemoveUsersfromADGroups {
 
 #3b. Remove user from Azure AD Groups
 function RemoveUserFromAzureADGroups{
-    $employeeidpull = Get-mguser -Userid noahg@alliedstoneinc.com -property id | Select-Object id
+    $employeeidpull = Get-mguser -Userid $Employeeemail -property id | Select-Object id
     $employeeid = $employeeidpull.Id
     $Groups = Get-MguserMemberOf -Userid $Employeeemail -property Id
     foreach ($i in $Groups.Id){
