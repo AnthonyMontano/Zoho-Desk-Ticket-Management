@@ -68,7 +68,6 @@ foreach ($obj in $offboardObjects) {
     $task = New-ScheduledTask -Action $actions -Principal $principal -Trigger $trigger -Settings $settings
     Register-ScheduledTask -TaskName $termTicket -InputObject $task
     Write-Host "Scheduled"
-    000000 Define the path to your Python script
 
 }
 $pythonScriptPath = "C:\Users\anthonym\Zoho\env\Scripts\Zoho-Desk-Ticket-Management\Ps1toZohoReporter.py"

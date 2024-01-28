@@ -4,6 +4,7 @@ import requests
 import re
 import json
 from bs4 import BeautifulSoup
+import subprocess, sys
 
 
 
@@ -141,9 +142,13 @@ ticket = ManageOffboardingTickets()
 ticket.getopenoffboardtickets()
 ticket.getopenoffboardticketcontent()
 z = ZohoReporter()
-z.getticketIds()
+#z.getticketIds()
 z.update_no_email_ticket_data()
 z.set_status()
 z.report_and_timestamp()
+p = subprocess.Popen(["powershell.exe", 
+              "C:\\Users\\anthonym\\Zoho\\env\\Scripts\\Zoho-Desk-Ticket-Management\\UserDataHandling.ps1"], 
+              stdout=sys.stdout)
+p.communicate()
 
         

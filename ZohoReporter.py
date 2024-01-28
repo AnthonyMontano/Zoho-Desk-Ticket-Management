@@ -45,9 +45,9 @@ else:
             try:
                 startofcontenturl = "https://desk.zoho.com/api/v1/tickets/"
                 with open("C:/Users/anthonym/Zoho/env/Scripts/Zoho-Desk-Ticket-Management/Config Files/OpenOffboardsData.json", "r") as f:
-                    existing_data = json.load(f)
+                    existing_data1 = json.load(f)
 
-                for entry in existing_data:
+                for entry in existing_data1:
                     if entry.get("Employee Email") == "":
                         self.data = {"status": "Closed"}
                     elif entry.get("5th Script") == 11111:
@@ -96,21 +96,20 @@ else:
         def update_no_email_ticket_data(self):
             try:
                 with open("C:/Users/anthonym/Zoho/env/Scripts/Zoho-Desk-Ticket-Management/Config Files/OpenOffboardsData.json", "r") as f:
-                    existing_data = json.load(f)
+                    existing_data2 = json.load(f)
 
-                for entry in existing_data:
-                    if entry.get("Employee Email") == "":
+                for entry2 in existing_data2:
+                    if entry2.get("Employee Email") == "":
                         # Update the desired values for entries with empty "Employee email"
-                        entry["1st Script"] = 100
-                        entry["2nd Script"] = 100
-                        entry["3rd Script"] = 100
-                        entry["4th Script"] = 100
-                        entry["5th Script"] = 100
-                        
+                        entry2["1st Script"] = 100
+                        entry2["2nd Script"] = 100
+                        entry2["3rd Script"] = 100
+                        entry2["4th Script"] = 100
+                        entry2["5th Script"] = 100
                         # Add more fields to update as needed
 
                 with open("C:/Users/anthonym/Zoho/env/Scripts/Zoho-Desk-Ticket-Management/Config Files/OpenOffboardsData.json", "w") as f:
-                    json.dump(existing_data, f, indent=4)
+                    json.dump(existing_data2, f, indent=4)
                 
                 print("Updated values for entries with empty Employee email.")
 
@@ -158,19 +157,17 @@ else:
             with open(
                 "C:/Users/anthonym/Zoho/env/Scripts/Zoho-Desk-Ticket-Management/Config Files/OpenOffboardsData.json",
                 "r"
-            ) as existing_file1:
-                existing_data1 = json.load(existing_file1)
-                for ticketid in self.ticketsIds:
-                    count =  ( existing_data1[self.count]["1st Script"]
-                            + existing_data1[self.count]["2nd Script"]
-                            + existing_data1[self.count]["3rd Script"]
-                            + existing_data1[self.count]["4th Script"]
-                            + existing_data1[self.count]["5th Script"])
+            ) as existing_file3:
+                existing_data3 = json.load(existing_file3)
+                for entry3 in existing_data3:
+                    count =  ( existing_data3[self.count]["1st Script"]
+                            + existing_data3[self.count]["2nd Script"]
+                            + existing_data3[self.count]["3rd Script"]
+                            + existing_data3[self.count]["4th Script"]
+                            + existing_data3[self.count]["5th Script"])
                     
-                
-                
                     comment_url_start = "https://desk.zoho.com/api/v1/tickets/"
-                    create_comment_url_middle = ticketid
+                    create_comment_url_middle = entry3.get("Ticket ID")
                     endofcontenturl = "/comments"
                     create_comment_url = (
                         f"{comment_url_start}{create_comment_url_middle}{endofcontenturl}"
@@ -204,26 +201,33 @@ else:
                         
                         match status_code:
                             case 200:
-                                with open(
-                                    "C:/Users/anthonym/Zoho/env/Scripts/Zoho-Desk-Ticket-Management/Config Files/OpenOffboardsData.json",
-                                    "r"
-                                ) as existing_file2:
-                                    existing_data2 = json.load(existing_file2)
                                 match count:
                                     case 1:
-                                        existing_data2[self.count]["2nd Script"] = 10
+                                        existing_data3[self.count]["2nd Script"] = 10
+                                        self.count += 1
                                         
                                     case 11:
-                                        existing_data2[self.count]["3rd Script"] = 100
-                                    
-                                    case 111:
-                                        existing_data2[self.count]["4th Script"] = 1000
+                                        existing_data3[self.count]["3rd Script"] = 100
+                                        self.count += 1
                                         
+                                    case 111:
+                                        existing_data3[self.count]["4th Script"] = 1000
+                                        self.count += 1
+                                       
                                     case 1111:
-                                        existing_data2[self.count]["5th Script"] = 10000
+                                        existing_data3[self.count]["5th Script"] = 10000
+                                        self.count += 1
                                         
                                     case 11111:
-                                        print("nice")
+                                        #instancey = ZohoReporter()
+                                        #instancey.move_entry_to_log(entry3.get("Ticket ID"))
+                                        print("This will be removed in the check")
+                                        self.count += 1
+                                    case 500:
+                                        #instancex = ZohoReporter()
+                                        #instancex.move_entry_to_log(entry3.get("Ticket ID"))
+                                        print("This will be removed in the check")
+                                        self.count += 1   
                             case 201:
                                 print("Status Code: Created")
                             case 400:
@@ -240,5 +244,47 @@ else:
                                 print("Refer to Zoho API codes")
                     except requests.exceptions.ConnectionError:
                         print("No internet available at the moment please try again later.")
+                
+                self.move_entry_to_log(existing_data3)
+                      
+        def move_entry_to_log(self, existing_data_pass):
+                
+            with open("C:/Users/anthonym/Zoho/env/Scripts/Zoho-Desk-Ticket-Management/Config Files/OpenOffboardsData.json", "w") as f:
+                json.dump(existing_data_pass, f, indent=4)
+            with open("C:/Users/anthonym/Zoho/env/Scripts/Zoho-Desk-Ticket-Management/Config Files/OpenOffboardsData.json", "r") as f:
+                existing_data4 = json.load(f)
+
+            entries_to_move = []
+            
+            for entry4 in existing_data4:
+                if entry4.get("Employee Email") == "" or entry4.get("5th Script") == 11111:
+                    entries_to_move.append(entry4)
+                else:
+                    print("hello")
+
+            log_file_path = "C:/Users/anthonym/Zoho/env/Scripts/Zoho-Desk-Ticket-Management/Config Files/Log.json"
+            
+            try:
+                with open(log_file_path, "r") as log_file:
+                    log_data = json.load(log_file)
+            except FileNotFoundError:
+                log_data = []
+
+            log_data.extend(entries_to_move)
+
+            with open(log_file_path, "w") as log_file:
+                json.dump(log_data, log_file, indent=4)
+
+            print(f"{len(entries_to_move)} entries moved to the log.")
+
+            # Update the main data file without the removed entries
+            remaining_entries = [entry for entry in existing_data4 if entry not in entries_to_move]
+
+            with open("C:/Users/anthonym/Zoho/env/Scripts/Zoho-Desk-Ticket-Management/Config Files/OpenOffboardsData.json", "w") as f:
+                json.dump(remaining_entries, f, indent=4)
+
+                            
+
                         
-                        
+
+                
