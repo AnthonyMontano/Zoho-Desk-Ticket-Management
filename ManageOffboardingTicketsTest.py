@@ -5,7 +5,7 @@ import json
 from bs4 import BeautifulSoup
 
 
-with open('C:/Users/Anthony/Zoho/Scripts/Cloned-Repo/Zoho-Desk-Ticket-Management/Config Files/ZohoConfigFileTest.json' ,'r') as file:
+with open(r'C:/Users/anthonym/Zoho/env/Scripts/Zoho-Desk-Ticket-Management/Config Files/ZohoConfigFileTest.json' ,'r') as file:
     config_data = json.load(file)
 offboardingheaders = config_data['apiheaders']
 offboardingparams = config_data['offboardingparams']
@@ -30,7 +30,7 @@ class ManageOffboardingTickets:
 
     def getopenoffboardtickets(self):
             try:
-                with open('C:/Users/Anthony/Zoho/Scripts/Cloned-Repo/Zoho-Desk-Ticket-Management/Config Files/Access_Token_Text_Read', 'r') as file:
+                with open('C:/Users/anthonym/Zoho/env/Scripts/Zoho-Desk-Ticket-Management/Config Files/Access_Token_Text_Read', 'r') as file:
                     access_token_str = file.read()
                 self.offboardingheaders['Authorization'] = f"Zoho-oauthtoken {access_token_str}"
                 response = requests.get(url = self.offboardingurl, headers = self.offboardingheaders, params = self.offboardingparams)
@@ -45,9 +45,6 @@ class ManageOffboardingTickets:
                             self.ticketIds.append(ticket_id)
                             self.ticketnumbers.append(ticket__number)
                             self.ticketidsiter.append(ticket_id)
-
-                    case 201:
-                        print('Status Code: Created')
                     case 204:
                         print('Status Code: No content')
                     case 400:
@@ -60,20 +57,8 @@ class ManageOffboardingTickets:
                         self.getopenoffboardtickets()
                     case 403:
                         print('Status Code: Forbidden (Unauthorised access)')
-                    case 404:
-                        print('Status Code: URL not found')
-                    case 405:
-                        print('Status Code: Method not allowed (Method called is not supported for the API invoked)')
-                    case 413:
-                        print('Status Code: Payload Too Large')
-                    case 415:
-                        print('Status Code: Unsupported Media Type')
-                    case 422:
-                        print('Status Code: Unprocessable Entity')
-                    case 429:
-                        print('Status Code: Too Many Requests')
-                    case 500:
-                        print('Status Code: Internal error')
+                    case _:
+                        print('Please refer to zoho api documentation')
             except requests.exceptions.ConnectionError:
                 print("No internet available at the moment please try again later.")
 
@@ -81,7 +66,7 @@ class ManageOffboardingTickets:
     def getopenoffboardticketcontent(self):
         startofcontenturl = "https://desk.zoho.com/api/v1/tickets/"
         endofcontenturl = "/latestThread"
-        with open('C:/Users/Anthony/Zoho/Scripts/Cloned-Repo/Zoho-Desk-Ticket-Management/Config Files/Access_Token_Text_Read', 'r') as file:
+        with open('C:/Users/anthonym/Zoho/env/Scripts/Zoho-Desk-Ticket-Management/Config Files/Access_Token_Text_Read', 'r') as file:
                 access_token_str = file.read()
         self.offboardingheaders['Authorization'] = f"Zoho-oauthtoken {access_token_str}"
         for ticketid in self.ticketIds:
@@ -93,8 +78,6 @@ class ManageOffboardingTickets:
                     print('Status Code: Ok... Grabbing Ticket Content....')
                     self.jsoncontent = json.loads(response.text)
                     ticket.prepoffboarddata()
-                case 201:
-                    print('Status Code: Created')
                 case 204:
                     print('Status Code: No content')
                 case 400:
@@ -106,20 +89,8 @@ class ManageOffboardingTickets:
                     ticket.getopenoffboardticketcontent()
                 case 403:
                     print('Status Code: Forbidden (Unauthorised access)')
-                case 404:
-                    print('Status Code: URL not found')
-                case 405:
-                    print('Status Code: Method not allowed (Method called is not supported for the API invoked)')
-                case 413:
-                    print('Status Code: Payload Too Large')
-                case 415:
-                    print('Status Code: Unsupported Media Type')
-                case 422:
-                    print('Status Code: Unprocessable Entity')
-                case 429:
-                    print('Status Code: Too Many Requests')
-                case 500:
-                    print('Status Code: Internal error')
+                case _:
+                    print("Refer to Zoho API documentation")
 
 
     def prepoffboarddata(self):
@@ -147,7 +118,7 @@ class ManageOffboardingTickets:
             all_data.append(data_dict)
 
             try:
-                with open("C:/Users/Anthony/Zoho/Scripts/Cloned-Repo/Zoho-Desk-Ticket-Management/Config Files/OpenOffboardsData.json", 'r') as existing_file:
+                with open("C:/Users/anthonym/Zoho/env/Scripts/Zoho-Desk-Ticket-Management/Config Files/OpenOffboardsData.json", 'r') as existing_file:
                     existing_data = json.load(existing_file)
             except FileNotFoundError:
                 existing_data = []
@@ -156,7 +127,7 @@ class ManageOffboardingTickets:
             existing_data.extend(all_data)
 
         # Write the combined data back to the file
-            with open("C:/Users/Anthony/Zoho/Scripts/Cloned-Repo/Zoho-Desk-Ticket-Management/Config Files/OpenOffboardsData.json", 'w') as f:
+            with open("C:/Users/anthonym/Zoho/env/Scripts/Zoho-Desk-Ticket-Management/Config Files/OpenOffboardsData.json", 'w') as f:
                 json.dump(existing_data, f, indent=4)
 
 ticket = ManageOffboardingTickets()

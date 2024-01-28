@@ -1,4 +1,4 @@
-$offboarddata = Get-Content -Raw -Path "C:\Users\Anthony\Zoho\Scripts\Cloned-Repo\Zoho-Desk-Ticket-Management\Config Files\OpenOffboardsData.json"
+$offboarddata = Get-Content -Raw -Path "C:\\Users\\anthonym\\Zoho\\env\\Scripts\\Zoho-Desk-Ticket-Management\\Config Files\\OpenOffboardsData.json"
 $offboardinfo = $offboarddata | ConvertFrom-Json 
 
 # Create an array to store offboard objects
@@ -60,12 +60,18 @@ foreach ($obj in $offboardObjects) {
         Write-Host "This is unprecedented"
     }
     
+ 
     $actions = (New-ScheduledTaskAction -Execute 'C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe' -Argument '-file "C:\users\Anthony\Zoho\Scripts\Cloned-Repo\Zoho-Desk-Ticket-Management\HelloWorld.Ps1"')
     $trigger = New-ScheduledTaskTrigger -Once -At $tasktime
     $principal = New-ScheduledTaskPrincipal -UserId 'NT AUTHORITY\SYSTEM' -RunLevel Highest
     $settings = New-ScheduledTaskSettingsSet -RunOnlyIfNetworkAvailable -WakeToRun
     $task = New-ScheduledTask -Action $actions -Principal $principal -Trigger $trigger -Settings $settings
-    
     Register-ScheduledTask -TaskName $termTicket -InputObject $task
-    
+    Write-Host "Scheduled"
+    000000 Define the path to your Python script
+
 }
+$pythonScriptPath = "C:\Users\anthonym\Zoho\env\Scripts\Zoho-Desk-Ticket-Management\Ps1toZohoReporter.py"
+
+# Run the Python script using Start-Process
+Start-Process python -ArgumentList $pythonScriptPath -NoNewWindow -Wait
