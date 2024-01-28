@@ -10,6 +10,7 @@ else:
     ) as file:
         config_data = json.load(file)
     update_access_token_params = config_data["update_access_token_params"]
+    apiheaders = config_data["apiheaders"]
 
     """The purpose of this class it to make changes to tickets in Zoho currently will be focused on changing status of tickets from new to in progess"""
 
@@ -17,7 +18,7 @@ else:
         def __init__(self):
             self.ticket_ids = []
             self.url = "https://desk.zoho.com/api/v1/tickets"
-            self.headers = {"orgId": "669421986"}
+            self.headers = apiheaders
             self.access_token_params_Update = update_access_token_params
             self.ticketsIds = []
             self.data = None
@@ -135,22 +136,22 @@ else:
             script3_timestamp = {
                 "isPublic": "true",
                 "contentType": "html",
-                "content": "Please ignore this message this is for testing purposes:\nScript 3 has ran portions of the offboard",
+                "content": "Please ignore this message this is for testing purposes:Script 3 has ran portions of the offboard",
             }
             script4_timestamp = {
                 "isPublic": "true",
                 "contentType": "html",
-                "content": "Please ignore this message this is for testing purposes:\nScript 4 is notifying you to please back up the user in Datto and remove the license ones the data is backed up. Thank you for your assistance.",
+                "content": "Please ignore this message this is for testing purposes:Script 4 is notifying you to please back up the user in Datto and remove the license ones the data is backed up. Thank you for your assistance.",
             }
             script5_timestamp = {
                 "isPublic": "true",
                 "contentType": "html",
-                "content": "Please ignore this message this is for testing purposes:\nScript 5 ",
+                "content": "Please ignore this message this is for testing purposes:Script 5 ",
             }
             script_no_email_timestamp = {
                 "isPublic": "true",
                 "contentType": "html",
-                "content": "Please ignore this message this is for testing purposes:user had no email"
+                "content": "Please ignore this message this is for testing purposes:User had no email"
                 
             }
             
@@ -160,7 +161,6 @@ else:
             ) as existing_file1:
                 existing_data1 = json.load(existing_file1)
                 for ticketid in self.ticketsIds:
-                    print(ticketid)    
                     count =  ( existing_data1[self.count]["1st Script"]
                             + existing_data1[self.count]["2nd Script"]
                             + existing_data1[self.count]["3rd Script"]
@@ -212,16 +212,16 @@ else:
                                 match count:
                                     case 1:
                                         existing_data2[self.count]["2nd Script"] = 10
-                                        "marked second script field"
+                                        
                                     case 11:
                                         existing_data2[self.count]["3rd Script"] = 100
-                                        "marked second script field"
+                                    
                                     case 111:
                                         existing_data2[self.count]["4th Script"] = 1000
-                                        "marked fourth script field"
+                                        
                                     case 1111:
                                         existing_data2[self.count]["5th Script"] = 10000
-                                        "marked fifth script field"
+                                        
                                     case 11111:
                                         print("nice")
                             case 201:
