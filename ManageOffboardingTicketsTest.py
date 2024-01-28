@@ -143,5 +143,7 @@ ticket.getopenoffboardticketcontent()
 z = ZohoReporter()
 z.getticketIds()
 z.update_no_email_ticket_data()
+z.set_status()
+z.report_and_timestamp()
 
         
