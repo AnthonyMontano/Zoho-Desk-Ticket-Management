@@ -1,8 +1,10 @@
 from TokenManagerTest import TokenManagerTest
+from ZohoReporter import ZohoReporter
 import requests
 import re
 import json
 from bs4 import BeautifulSoup
+
 
 
 with open(r'C:/Users/anthonym/Zoho/env/Scripts/Zoho-Desk-Ticket-Management/Config Files/ZohoConfigFileTest.json' ,'r') as file:
@@ -115,6 +117,11 @@ class ManageOffboardingTickets:
                 key = parts[0].strip()
                 value = parts[1].strip() if len(parts) > 1 else '' 
                 data_dict[key] = value
+            data_dict['1st Script'] = 1
+            data_dict['2nd Script'] = 0
+            data_dict['3rd Script'] = 0
+            data_dict['4th Script'] = 0
+            data_dict['5th Script'] = 0
             all_data.append(data_dict)
 
             try:
@@ -133,4 +140,8 @@ class ManageOffboardingTickets:
 ticket = ManageOffboardingTickets()
 ticket.getopenoffboardtickets()
 ticket.getopenoffboardticketcontent()
+z = ZohoReporter()
+z.getticketIds()
+z.update_no_email_ticket_data()
+
         

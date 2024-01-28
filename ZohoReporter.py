@@ -43,7 +43,7 @@ else:
         def set_in_progress(self):
             startofcontenturl = "https://desk.zoho.com/api/v1/tickets/"
             endofcontenturl = ""
-            
+            print('hello')
             try:
                 with open(
                     "C:/Users/anthonym/Zoho/env/Scripts/Zoho-Desk-Ticket-Management/Config Files/Access_Token_Text_Update",
@@ -100,8 +100,35 @@ else:
             except requests.exceptions.ConnectionError:
                 print("No internet available at the moment please try again later.")
                 
-        def close_no_email_tickets(self):
-            startofcontenturl = "https://desk.zoho.com/api/v1/tickets/"
+        def update_no_email_ticket_data(self):
+            try:
+                with open("C:/Users/anthonym/Zoho/env/Scripts/Zoho-Desk-Ticket-Management/Config Files/OpenOffboardsData.json", "r") as f:
+                    existing_data = json.load(f)
+
+                for entry in existing_data:
+                    if entry.get("Employee Email") == "":
+                        # Update the desired values for entries with empty "Employee email"
+                        entry["1st Script"] = 100
+                        entry["2nd Script"] = 100
+                        entry["3rd Script"] = 100
+                        entry["4th Script"] = 100
+                        entry["5th Script"] = 100
+                        
+                        # Add more fields to update as needed
+
+                with open("C:/Users/anthonym/Zoho/env/Scripts/Zoho-Desk-Ticket-Management/Config Files/OpenOffboardsData.json", "w") as f:
+                    json.dump(existing_data, f, indent=4)
+                
+                print("Updated values for entries with empty Employee email.")
+
+            except FileNotFoundError:
+                print("JSON file not found.")
+            except json.JSONDecodeError:
+                print("Error decoding JSON file.")
+            except Exception as e:
+                print(f"An error occurred: {e}")
+            
+        """ startofcontenturl = "https://desk.zoho.com/api/v1/tickets/"
             endofcontenturl = ""
             
             try:
@@ -156,7 +183,7 @@ else:
                         case _:
                             print("Please refer to Zoho desk documentation")
             except requests.exceptions.ConnectionError:
-                print("No internet available at the moment please try again later.")        
+                print("No internet available at the moment please try again later.")  """      
 
         def report_and_timestamp(self):
             
@@ -267,8 +294,6 @@ else:
                                         
                                     case 16:
                                         print("nice")
-                                strz = f"(count was {count}"
-                                print(strz)
                             case 201:
                                 print("Status Code: Created")
                             case 400:
