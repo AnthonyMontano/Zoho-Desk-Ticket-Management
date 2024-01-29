@@ -1,40 +1,42 @@
+$ConfirmPreference = "None"
 
-function GetData{
-    $offboarddata = Get-Content -Raw -Path "C:/Users/anthonym/Zoho/env/Scripts/Zoho-Desk-Ticket-Management/Config Files/OpenOffboardsData.json"
-    $offboardinfo = $offboarddata | ConvertFrom-Json 
+$offboarddata = Get-Content -Raw -Path "C:/Users/anthonym/Zoho/env/Scripts/Zoho-Desk-Ticket-Management/Config Files/OpenOffboardsData.json"
+$offboardinfo = $offboarddata | ConvertFrom-Json 
     
     # Create an array to store offboard objects
-    $offboardObjects = @()
+$offboardObjects = @()
        
-        foreach ($offboard in $offboardinfo) {
-            # Create a custom object for each offboard entry
-            $offboardObject = $offboard | Select-Object @{
-                Name = 'Ticket Number'; Expression = { $_.'Ticket Number' }
-            }, @{
-                Name = 'Ticket ID' ; Expression = { $_.'Ticket ID'  }
-            }, @{
-                Name = 'Employee Name'; Expression = { $_.'Employee Name' }
-            }, @{
-                Name = 'Employee Location' ; Expression = { $_.'Employee Location'  }
-            }, @{
-                Name = 'Title' ; Expression = { $_.'Title'  }
-            }, @{
-                Name = 'Associate ID' ; Expression = { $_.'Associate ID'  }
-            }, @{
-                Name = 'Department'; Expression = { $_.'Department'}
-            }, @{
-                Name = 'Email Forwarding' ; Expression = { $_.'Email Forwarding' }
-            }, @{
-                Name = 'Term Time' ; Expression = { $_.'Term Time' }
-            }, @{
-                Name = 'Term Date' ; Expression = { $_.'Term Date' }
-            }, @{
-                Name = 'Employee Email' ; Expression = { $_.'Employee Email'  }
-            }
+    foreach ($offboard in $offboardinfo) {
+        # Create a custom object for each offboard entry
+        $offboardObject = $offboard | Select-Object @{
+            Name = 'Ticket Number'; Expression = { $_.'Ticket Number' }
+        }, @{
+            Name = 'Ticket ID' ; Expression = { $_.'Ticket ID'  }
+        }, @{
+             Name = 'Employee Name'; Expression = { $_.'Employee Name' }
+        }, @{
+            Name = 'Employee Location' ; Expression = { $_.'Employee Location'  }
+        }, @{
+            Name = 'Title' ; Expression = { $_.'Title'  }
+        }, @{
+            Name = 'Associate ID' ; Expression = { $_.'Associate ID'  }
+        }, @{
+            Name = 'Department'; Expression = { $_.'Department'}
+        }, @{
+            Name = 'Email Forwarding' ; Expression = { $_.'Email Forwarding' }
+        }, @{
+            Name = 'Term Time' ; Expression = { $_.'Term Time' }
+        }, @{
+            Name = 'Term Date' ; Expression = { $_.'Term Date' }
+        }, @{
+            Name = 'Employee Email' ; Expression = { $_.'Employee Email'  }
+        }
         # Add the object to the array
         $offboardObjects += $offboardObject
+       Write-Host $offboardObject.'Employee Name'
 }
-}
+
+
 
 function GraphSignin {
     $ApplicationId = [Environment]::GetEnvironmentVariable('ApplicationID', 'Machine')       
@@ -46,6 +48,7 @@ function GraphSignin {
     -TypeName System.Management.Automation.PSCredential `
     -ArgumentList $ApplicationId, $SecuredPasswordPassword
     Connect-MgGraph -TenantId $tenantID -ClientSecretCredential $ClientSecretCredential
+    Write-Host "Graph Signed in"
     }
 
 function EXOSignIn {
@@ -83,11 +86,12 @@ function RemoveUserfromDistroLists{
     foreach ($i in $Groups.Id){
 
         # need this for the graph query below; it needs a $ref tacked on at the end. By setting the variable to '$ref' it does not get interpreted as a variable.
-        Remove-DistributionGroupMember -Identity $i -Member $Employeeemail
+        Remove-DistributionGroupMember -Identity $i -Member $Employeeemail -Confirm:$false -ErrorAction SilentlyContinue
         Write-Output "Removing $Employeeemail from the $i"
     
     
     }
+    Start-Sleep -Seconds 20
 }
 
 #3b. Remove from all Active Directory Groups
@@ -99,7 +103,7 @@ function RemoveUsersfromADGroups {
             foreach ($group in $groupMembership){
                 Write-Host "Removing $($samaccountname.SamAccountName) from $($group.name)"-ForegroundColor Cyan
                 } 
-            $groupMembership | Where-Object -Property name -ne -value "Domain Users" | Remove-ADGroupMember -members $samaccountname -Confirm:$false -ErrorAction Stop
+            $groupMembership | Where-Object -Property name -ne -value "Domain Users" | Remove-ADGroupMember -members $samaccountname -Confirm:$false -ErrorAction Stop -Force
             
         }
         catch {
@@ -116,7 +120,7 @@ function RemoveUserFromAzureADGroups{
     foreach ($i in $Groups.Id){
 
         
-        Remove-MgGroupMemberByRef -GroupId $i -Member $employeeid
+        Remove-MgGroupMemberByRef -GroupId $i -DirectoryObjectId $employeeid -ea SilentlyContinue
         Write-Output "Removing $Employeeemail from the $i"
     }
 }
@@ -148,23 +152,9 @@ function DisableUserandmovetoOU  {
     }
 }
 
-#
-function RemoveUserfromDistroLists{
-    $Groups = Get-MguserMemberOf -Userid $Employeeemail -property Id
-    foreach ($i in $Groups.Id){
-
-        # need this for the graph query below; it needs a $ref tacked on at the end. By setting the variable to '$ref' it does not get interpreted as a variable.
-        Remove-DistributionGroupMember -Identity $i -Member $Employeeemail
-        Write-Output "Removing $Employeeemail from the $i"
-    
-    
-    }
-}
-
-
 #7.Email forwarding 
 function SetForwardingEmail{
-    if($EmailForwarding -eq "No"){
+    if($EmailForwarding -eq ""){
         Write-Host "No Email Forwarding Requested"
     }
     elseif($EmailForwarding -eq "Yes"){
@@ -201,54 +191,56 @@ function RunReportingScript{
 
 
 #Start of tree of actions
-function ExcecuteFlow{
-    GetData
-    foreach($obj in $offboardObjects){
-        $Employeeemail = $obj."Employee Email"
-        $EmailForwarding = $obj."Email Forwarding"
-        $EmailForwardingDuration = $obj."Email Forwarding Duration"
-        $TicketNumber = $obj."Ticket Number"
-        $EmailForwardingAddress = $obj."Email Forwarding Address"
-        Write-Host $Employeeemail
-        Write-Host $EmailForwarding
-        Write-Host $EmailForwardingDuration
-        Write-Host $TicketNumber
-        Write-Host $EmailForwardingAddress
+GraphSignin
+EXOSignIn
+foreach($obj in $offboardObjects){
+    $Employeeemail = $obj."Employee Email"
+    $EmailForwarding = $obj."Email Forwarding"
+    $EmailForwardingDuration = $obj."Email Forwarding Duration"
+    $TicketNumber = $obj."Ticket Number"
+    $EmailForwardingAddress = $obj."Email Forwarding Address"
+    Write-Host $Employeeemail
+    Write-Host $EmailForwarding
+    Write-Host $EmailForwardingDuration
+    Write-Host $TicketNumber
+    Write-Host $EmailForwardingAddress
         
-        $syncstatus = get-mguser -Userid $Employeeemail -Property OnPremisesSyncEnabled
+    $syncstatus = get-mguser -Userid $Employeeemail -Property OnPremisesSyncEnabled | Select-Object OnPremisesSyncEnabled
+    
+    if ($syncstatus.OnPremisesSyncEnabled -eq "True"){
+            
+        
+       BlockSignIn
+       Signoutofallsessions
+       MarkUserTermedOnprem
+       SetForwardingEmail
+       RemoveUsersfromADGroups
+       RemoveUserfromDistroLists 
+       RemoveUserFromAzureADGroups
+       
+            
+                    
+            
+                    
+        }
+    elseif($null -eq $syncstatus.OnPremisesSyncEnabled){
+            
+        
+        BlockSignIn
+        Signoutofallsessions
+        MarkUserTermedinAzure
+        SetForwardingEmail
+        RemoveUserfromDistroLists
+        RemoveUserFromAzureADGroups
+        
+            
+        }
+    else {
+        Write-Host "Something unprecedented has occured"
+        exit
+     }
 
-        if ($syncstatus.OnPremisesSyncEnabled -eq "true"){
-            
-            GraphSignin
-            EXOSignIn
-            BlockSignIn
-            Signoutofallsessions
-            MarkUserTermedOnprem
-            SetForwardingEmail
-            RemoveUsersfromADGroups
-            RemoveUserfromDistroLists
-            RemoveUserFromAzureADGroups
-            RunReportingScript
-            
-                    
-            
-                    
-        }
-        elseif($syncstatus.OnPremisesSyncEnabled -eq "false"){
-            
-            GraphSignin
-            EXOSignIn
-            BlockSignIn
-            Signoutofallsessions
-            MarkUserTermedinAzure
-            SetForwardingEmail
-            RemoveUserfromDistroLists
-            RemoveUserFromAzureADGroups
-            RunReportingScript
-            
-        }
-        else {
-            Write-Host "Something unprecedented has occured"
-        }
-    }
 }
+
+
+

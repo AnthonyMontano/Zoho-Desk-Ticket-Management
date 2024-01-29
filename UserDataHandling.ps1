@@ -1,3 +1,10 @@
+if (-Not ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] 'Administrator')) {
+    if ([int](Get-CimInstance -Class Win32_OperatingSystem | Select-Object -ExpandProperty BuildNumber) -ge 6000) {
+     $CommandLine = "-File `"" + $MyInvocation.MyCommand.Path + "`" " + $MyInvocation.UnboundArguments
+     Start-Process -FilePath PowerShell.exe -Verb Runas -ArgumentList $CommandLine
+     Exit
+    }
+   }
 $offboarddata = Get-Content -Raw -Path "C:\\Users\\anthonym\\Zoho\\env\\Scripts\\Zoho-Desk-Ticket-Management\\Config Files\\OpenOffboardsData.json"
 $offboardinfo = $offboarddata | ConvertFrom-Json 
 
@@ -41,12 +48,12 @@ foreach ($obj in $offboardObjects) {
     $termTime = $obj."Term Time"
     $termTicket = $obj."Ticket Number"
     $timenoon = "AM 9-12noon"
-    $timeevening = "PM 12-6pm" 
+    $timeevening = "PM 12-6pm"
     $Month = $TermDate.Substring(0,2)
     $Day = $TermDate.Substring(3,2)
     $Year = "20" + $TermDate.Substring(6,2)
     $tasktimenoon = $Year + "-" + $Month + "-" + $Day + " " + "12:00:00"
-    $tasktimeevening = $Year + "-" + $Month + "-" + $Day + " " + "05:00:00"
+    $tasktimeevening = $Year + "-" + $Month + "-" + $Day + " " + "17:00:00"
     #$tasktimenoon = "2024" + "-" + "01" + "-" + "22" + " " + "19:59:00"
     #$tasktimeevening = "2024" + "-" + "01" + "-" + "22" + " " + "19:59:00"
     
@@ -60,7 +67,12 @@ foreach ($obj in $offboardObjects) {
         Write-Host "This is unprecedented"
     }
     
- 
+    if((Get-date $tasktime) -lt (get-Date)){
+        $today = Get-Date
+        $tasktime = $today.AddMinutes(10)
+        Write-Host $tasktime
+    }
+    
     $actions = (New-ScheduledTaskAction -Execute 'C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe' -Argument '-file "C:\users\Anthony\Zoho\Scripts\Cloned-Repo\Zoho-Desk-Ticket-Management\HelloWorld.Ps1"')
     $trigger = New-ScheduledTaskTrigger -Once -At $tasktime
     $principal = New-ScheduledTaskPrincipal -UserId 'NT AUTHORITY\SYSTEM' -RunLevel Highest

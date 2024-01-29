@@ -69,7 +69,9 @@ else:
                     status_code = response.status_code
                     match status_code:
                         case 200:
-                            print(f"Status Code: Ok... Changing ticket status {new_key} to {new_value}....")
+                            #print(f"Status Code: Ok... Changing ticket status {new_key} to {new_value}....")
+                            print(f"Ticket ID: {ticketid}, Status: {new_value}, Status Code: {status_code}")
+
                         case 201:
                             print("Status Code: Created")
                         case 400:
@@ -85,7 +87,10 @@ else:
                             print(
                                 "Renewed token, Now grabbing Ticket numbers and IDs...."
                             )
-                            self.set_status()
+                            instance_g = ZohoReporter()
+                            instance_g.set_status()
+                            break
+                            
                         case 403:
                             print("Status Code: Forbidden (Unauthorised access)")
                         case _:
