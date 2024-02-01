@@ -1,7 +1,7 @@
 $ConfirmPreference = "None"
 
-$offboarddata = Get-Content -Raw -Path "C:/Users/anthonym/Zoho/env/Scripts/Zoho-Desk-Ticket-Management/Config Files/OpenOffboardsData.json"
-$offboardinfo = $offboarddata | ConvertFrom-Json 
+$offboarddata = Get-Content -Path "C:/Users/anthonym/Zoho/env/Scripts/Zoho-Desk-Ticket-Management/Config Files/OpenOffboardsData.json" | Out-String | ConvertFrom-Json
+$jsonFilePath = "C:\Users\anthonym\Zoho\env\Scripts\Zoho-Desk-Ticket-Management\Config Files\OpenOffboardsData.json" 
     
     # Create an array to store offboard objects
 $offboardObjects = @()
@@ -30,10 +30,11 @@ $offboardObjects = @()
             Name = 'Term Date' ; Expression = { $_.'Term Date' }
         }, @{
             Name = 'Employee Email' ; Expression = { $_.'Employee Email'  }
+        }, @{
+            Name = 'Prep Status' ; Expression = { $_.'Prep Status' }
         }
         # Add the object to the array
         $offboardObjects += $offboardObject
-       Write-Host $offboardObject.'Employee Name'
 }
 
 
@@ -182,65 +183,86 @@ function MarkUserTermedinAzure{
 
 #8. Reporting back to Zoho
 function RunReportingScript{
-
+    
 }
 
-
-    
 
 
 
 #Start of tree of actions
 GraphSignin
 EXOSignIn
-foreach($obj in $offboardObjects){
+
+foreach($obj in $offboarddata){
     $Employeeemail = $obj."Employee Email"
     $EmailForwarding = $obj."Email Forwarding"
     $EmailForwardingDuration = $obj."Email Forwarding Duration"
     $TicketNumber = $obj."Ticket Number"
     $EmailForwardingAddress = $obj."Email Forwarding Address"
+    $PrepState = $obj."Prep Status"
+    $TermDate = $obj."Term Date"
+    $termTime = $obj."Term Time"
+    $timenoon = "AM 9-12noon"
+    $timeevening = "PM 12-6pm"
+    $Month = $TermDate.Substring(0,2)
+    $Day = $TermDate.Substring(3,2)
+    $Year = "20" + $TermDate.Substring(6,2)
+    $tasktimenoon = $Year + "-" + $Month + "-" + $Day + " " + "12:00:00"
+    $tasktimeevening = $Year + "-" + $Month + "-" + $Day + " " + "17:00:00"
+    
+    if ($termTime -eq $timenoon){
+        $tasktime = $tasktimenoon
+    }
+    elseif($termTime -eq $timeevening){
+        $tasktime = $tasktimeevening
+    }
+    else{
+        Write-Host "This is unprecedented"
+    }
+
+    Write-Host $PrepState
     Write-Host $Employeeemail
     Write-Host $EmailForwarding
     Write-Host $EmailForwardingDuration
     Write-Host $TicketNumber
     Write-Host $EmailForwardingAddress
-        
-    $syncstatus = get-mguser -Userid $Employeeemail -Property OnPremisesSyncEnabled | Select-Object OnPremisesSyncEnabled
-    
-    if ($syncstatus.OnPremisesSyncEnabled -eq "True"){
-            
-        
-       BlockSignIn
-       Signoutofallsessions
-       MarkUserTermedOnprem
-       SetForwardingEmail
-       RemoveUsersfromADGroups
-       RemoveUserfromDistroLists 
-       RemoveUserFromAzureADGroups
-       
-            
-                    
-            
-                    
-        }
-    elseif($null -eq $syncstatus.OnPremisesSyncEnabled){
-            
-        
-        BlockSignIn
-        Signoutofallsessions
-        MarkUserTermedinAzure
-        SetForwardingEmail
-        RemoveUserfromDistroLists
-        RemoveUserFromAzureADGroups
-        
-            
-        }
-    else {
-        Write-Host "Something unprecedented has occured"
-        exit
-     }
 
+    if((Get-date $tasktime) -lt (get-Date)){
+        
+        $syncstatus = get-mguser -Userid $Employeeemail -Property OnPremisesSyncEnabled | Select-Object OnPremisesSyncEnabled
+        if ($PrepState -eq "Ready"){
+            if ($syncstatus.OnPremisesSyncEnabled -eq "True"){
+            $obj.'Prep Status' = "Executed"        
+                
+            BlockSignIn
+            Signoutofallsessions
+            MarkUserTermedOnprem
+            SetForwardingEmail
+            RemoveUsersfromADGroups
+            RemoveUserfromDistroLists 
+            RemoveUserFromAzureADGroups
+            $updatedJsonData = $offboarddata | ConvertTo-Json -Depth 10
+            $updatedJsonData | Set-Content -Path $jsonFilePath
+                    
+                }
+            elseif($null -eq $syncstatus.OnPremisesSyncEnabled){
+                    
+                
+                BlockSignIn
+                Signoutofallsessions
+                MarkUserTermedinAzure
+                SetForwardingEmail
+                RemoveUserfromDistroLists
+                RemoveUserFromAzureADGroups
+                
+                    
+                }
+            else {
+                Write-Host "Something unprecedented has occured"
+                exit
+        }
+    #>
+    }
+    }
 }
-
-
 

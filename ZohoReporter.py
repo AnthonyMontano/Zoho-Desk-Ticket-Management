@@ -112,7 +112,7 @@ else:
                         entry2["4th Script"] = 100
                         entry2["5th Script"] = 100
                         # Add more fields to update as needed
-
+                    
                 with open("C:/Users/anthonym/Zoho/env/Scripts/Zoho-Desk-Ticket-Management/Config Files/OpenOffboardsData.json", "w") as f:
                     json.dump(existing_data2, f, indent=4)
                 
@@ -125,7 +125,7 @@ else:
             except Exception as e:
                 print(f"An error occurred: {e}")
                 
-        def report_and_timestamp(self):
+        def timestamp(self):
             
             script1_timestamp = {
                 "isPublic": "true",
@@ -135,17 +135,17 @@ else:
             script2_timestamp = {
                 "isPublic": "true",
                 "contentType": "html",
-                "content": "Please ignore this message this is for testing purposes:\nScript 2 has scheduled the offboarding tickets to run at the requested times",
+                "content": "Please ignore this message this is for testing purposes:\nScript 2 is ready to execute. Pending Term Time...",
             }
             script3_timestamp = {
                 "isPublic": "true",
                 "contentType": "html",
-                "content": "Please ignore this message this is for testing purposes:Script 3 has ran portions of the offboard",
+                "content": "Script 3 has ran portions of the offboard, Please back up the user in Datto and remove the license",
             }
             script4_timestamp = {
                 "isPublic": "true",
                 "contentType": "html",
-                "content": "Please ignore this message this is for testing purposes:Script 4 is notifying you to please back up the user in Datto and remove the license ones the data is backed up. Thank you for your assistance.",
+                "content": "Script 4 is notifying you to please back up the user in Datto and remove the license ones the data is backed up. Thank you for your assistance.",
             }
             script5_timestamp = {
                 "isPublic": "true",
@@ -165,12 +165,19 @@ else:
             ) as existing_file3:
                 existing_data3 = json.load(existing_file3)
                 for entry3 in existing_data3:
+                    print(entry3.get("Employee Name"))
+                    print(entry3.get("1st Script"))
+                    print(entry3.get("2nd Script"))
+                    print(entry3.get("3rd Script"))
+                    print(entry3.get("4th Script"))
+                    print(entry3.get("5th Script"))
+                    print(entry3.get("Prep Status"))
                     count =  ( existing_data3[self.count]["1st Script"]
                             + existing_data3[self.count]["2nd Script"]
                             + existing_data3[self.count]["3rd Script"]
                             + existing_data3[self.count]["4th Script"]
                             + existing_data3[self.count]["5th Script"])
-                    
+                
                     comment_url_start = "https://desk.zoho.com/api/v1/tickets/"
                     create_comment_url_middle = entry3.get("Ticket ID")
                     endofcontenturl = "/comments"
@@ -178,80 +185,92 @@ else:
                         f"{comment_url_start}{create_comment_url_middle}{endofcontenturl}"
                     )
                     
-                    try:
-                        match count:
+                    match count:
+                        case 1:
+                            data1 = json.dumps(script1_timestamp)
+                            self.report(existing_data3,count,create_comment_url,data1)
+                        case 11:
+                            data1 = json.dumps(script2_timestamp)
+                            self.report(existing_data3,count,create_comment_url,data1)
+                        case 111:
+                            if existing_data3[self.count]["3rd Script"] == 100 and existing_data3[self.count]["Prep Status"] == "Executed":
+                                data1 = json.dumps(script3_timestamp)
+                                self.report(existing_data3,count,create_comment_url,data1)   
+                            else:
+                                continue 
+                        case 1111:
+                           # data1 = json.dumps(script4_timestamp)
+                           print("1111")
+                        case 11111:
+                           # data1 = json.dumps(script5_timestamp)
+                           print("11111")
+                        case 500:
+                            data1 = json.dumps(script_no_email_timestamp)
+                            self.report(existing_data3,count,create_comment_url,data1)
+                with open(
+                "C:/Users/anthonym/Zoho/env/Scripts/Zoho-Desk-Ticket-Management/Config Files/OpenOffboardsData.json","r") as f:
+                    new_data = json.load(f)            
+                with open("C:/Users/anthonym/Zoho/env/Scripts/Zoho-Desk-Ticket-Management/Config Files/OpenOffboardsData.json", "w") as g:
+                    json.dump(new_data, g, indent=4)    
+                self.move_entry_to_log(new_data)
+        
+        def report(self, exis_data, Count, url1,data_passed):
+            
+            with open(
+                        "C:/Users/anthonym/Zoho/env/Scripts/Zoho-Desk-Ticket-Management/Config Files/Access_Token_Text_Update",
+                        "r"
+                    ) as file:
+                    access_token_str = file.read()
+            self.headers["Authorization"] = f"Zoho-oauthtoken {access_token_str}"
+            try:
+                response = requests.post(url=url1, data=data_passed, headers=self.headers)
+                status_code = response.status_code
+                            
+                match status_code:
+                    case 200:
+                        match Count:
                             case 1:
-                                data1 = json.dumps(script1_timestamp)
+                                exis_data[self.count]["2nd Script"] = 10
+                                self.count += 1              
                             case 11:
-                                data1 = json.dumps(script2_timestamp)
-                            case 111:
-                                data1 = json.dumps(script3_timestamp)    
+                                exis_data[self.count]["3rd Script"] = 100
+                                self.count += 1          
+                            case 111:               
+                                if exis_data[self.count]["3rd Script"] == 100 and exis_data[self.count]["Prep Status"] == "Executed":
+                                    self.count += 1
+                                    exis_data[self.count]["4th Script"] = 1000
+                                else:
+                                    self.count += 1                                 
                             case 1111:
-                                data1 = json.dumps(script4_timestamp)
+                                self.count += 1                                       
                             case 11111:
-                                data1 = json.dumps(script5_timestamp)
+                                print("This will be removed in the check")
+                                self.count += 1
                             case 500:
-                                data1 = json.dumps(script_no_email_timestamp)
-                        with open(
-                            "C:/Users/anthonym/Zoho/env/Scripts/Zoho-Desk-Ticket-Management/Config Files/Access_Token_Text_Update",
-                            "r"
-                        ) as file:
-                            access_token_str = file.read()
-                        self.headers["Authorization"] = f"Zoho-oauthtoken {access_token_str}"
-                        
-                        response = requests.post(
-                            url=create_comment_url, data=data1, headers=self.headers
-                        )
-                        status_code = response.status_code
-                        
-                        match status_code:
-                            case 200:
-                                match count:
-                                    case 1:
-                                        existing_data3[self.count]["2nd Script"] = 10
-                                        self.count += 1
-                                        
-                                    case 11:
-                                        existing_data3[self.count]["3rd Script"] = 100
-                                        self.count += 1
-                                        
-                                    case 111:
-                                        existing_data3[self.count]["4th Script"] = 1000
-                                        self.count += 1
-                                       
-                                    case 1111:
-                                        existing_data3[self.count]["5th Script"] = 10000
-                                        self.count += 1
-                                        
-                                    case 11111:
-                                        #instancey = ZohoReporter()
-                                        #instancey.move_entry_to_log(entry3.get("Ticket ID"))
-                                        print("This will be removed in the check")
-                                        self.count += 1
-                                    case 500:
-                                        #instancex = ZohoReporter()
-                                        #instancex.move_entry_to_log(entry3.get("Ticket ID"))
-                                        print("This will be removed in the check")
-                                        self.count += 1   
-                            case 201:
-                                print("Status Code: Created")
-                            case 400:
-                                print("Status Code: Bad request")
-                            case 401:
-                                print("Status Code: Unauthorized... Grabbing a new token... ")
-                                instance_z = TokenManagerTest({"scope": "Desk.tickets.UPDATE"})
-                                instance_z.call_new_access_token()
-                                self.report_and_timestamp
-                                print("Renewed token, Updating tickets with comments....")
-                            case 403:
-                                print("Status Code: Forbidden (Unauthorised access)")
-                            case _:
-                                print("Refer to Zoho API codes")
-                    except requests.exceptions.ConnectionError:
-                        print("No internet available at the moment please try again later.")
-                
-                self.move_entry_to_log(existing_data3)
-                      
+                                print("This will be removed in the check")
+                                self.count += 1    
+                    case 201:
+                        print("Status Code: Created")
+                    case 400:
+                        print("Status Code: Bad request")
+                    case 401:
+                        print("Status Code: Unauthorized... Grabbing a new token... ")
+                        instance_z = TokenManagerTest({"scope": "Desk.tickets.UPDATE"})
+                        instance_z.call_new_access_token()
+                        instance_x = ZohoReporter()
+                        instance_x.timestamp()
+                        print("Renewed token, Updating tickets with comments....")
+                    case 403:
+                        print("Status Code: Forbidden (Unauthorised access)")
+                    case _:
+                        print("Refer to Zoho API codes")
+            except requests.exceptions.ConnectionError:
+                       print("No internet available at the moment please try again later.")
+            with open("C:/Users/anthonym/Zoho/env/Scripts/Zoho-Desk-Ticket-Management/Config Files/OpenOffboardsData.json", "w") as f:
+                json.dump(exis_data, f, indent=4)    
+            
+                       
+                       
         def move_entry_to_log(self, existing_data_pass):
                 
             with open("C:/Users/anthonym/Zoho/env/Scripts/Zoho-Desk-Ticket-Management/Config Files/OpenOffboardsData.json", "w") as f:

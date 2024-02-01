@@ -123,6 +123,7 @@ class ManageOffboardingTickets:
             data_dict['3rd Script'] = 0
             data_dict['4th Script'] = 0
             data_dict['5th Script'] = 0
+            data_dict['Prep Status'] = ""
             all_data.append(data_dict)
 
             try:
@@ -144,7 +145,7 @@ ticket.getopenoffboardticketcontent()
 z = ZohoReporter()
 z.update_no_email_ticket_data()
 z.set_status()
-z.report_and_timestamp()
+z.timestamp()
 p = subprocess.Popen(["powershell.exe", 
               "C:\\Users\\anthonym\\Zoho\\env\\Scripts\\Zoho-Desk-Ticket-Management\\UserDataHandling.ps1"], 
               stdout=sys.stdout)
