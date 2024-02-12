@@ -7,10 +7,10 @@ if (-Not ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdent
     
    }
 $jsonFilePath = "C:\Users\anthonym\Zoho\env\Scripts\Zoho-Desk-Ticket-Management\Config Files\OpenOffboardsData.json" 
-$offboarddata = Get-Content -Path "C:\\Users\\anthonym\\Zoho\\env\\Scripts\\Zoho-Desk-Ticket-Management\\Config Files\\OpenOffboardsData.json" | Out-String | ConvertFrom-Json
+$offboarddata = Get-Content -Path "C:\\Users\\anthonym\\Zoho\\env\\Scripts\\Zoho-Desk-Ticket-Management\\Config Files\\OpenOffboardsData.json" -Raw | ConvertFrom-Json
 # Create an array to store offboard objects
-
-    foreach ($offboard in $offboarddata) {
+$OffboardDataArray = @($offboarddata)
+    foreach ($offboard in $OffboardDataArray) {
         Write-Host $offboard."Prep Status"
         Write-Host $offboard
         if($offboard."Prep Status" -eq ""){
@@ -20,8 +20,9 @@ $offboarddata = Get-Content -Path "C:\\Users\\anthonym\\Zoho\\env\\Scripts\\Zoho
 
     # Add the object to the array
     #$offboardObjects += $offboardObject
-    $updatedJsonData = $offboarddata | ConvertTo-Json -Depth 10
-    $updatedJsonData | Set-Content -Path $jsonFilePath
+    $updatedJsonData = ConvertTo-Json @($OffboardDataArray) -Depth 10 | Set-Content -Path $jsonFilePath
+    $updatedJsonData
+    #$updatedJsonData | Set-Content -Path $jsonFilePath
 }
 
 $pythonScriptPath = "C:\Users\anthonym\Zoho\env\Scripts\Zoho-Desk-Ticket-Management\Ps1toZohoReporter.py"

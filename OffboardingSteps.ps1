@@ -1,12 +1,15 @@
+
+
+
 $ConfirmPreference = "None"
 
-$offboarddata = Get-Content -Path "C:/Users/anthonym/Zoho/env/Scripts/Zoho-Desk-Ticket-Management/Config Files/OpenOffboardsData.json" | Out-String | ConvertFrom-Json
+$offboarddata = Get-Content -Path "C:/Users/anthonym/Zoho/env/Scripts/Zoho-Desk-Ticket-Management/Config Files/OpenOffboardsData.json" -Raw | ConvertFrom-Json
 $jsonFilePath = "C:\Users\anthonym\Zoho\env\Scripts\Zoho-Desk-Ticket-Management\Config Files\OpenOffboardsData.json" 
     
     # Create an array to store offboard objects
-$offboardObjects = @()
+$offboardObjects = @($offboarddata)
        
-    foreach ($offboard in $offboardinfo) {
+    <#foreach ($offboard in $offboardObjects) {
         # Create a custom object for each offboard entry
         $offboardObject = $offboard | Select-Object @{
             Name = 'Ticket Number'; Expression = { $_.'Ticket Number' }
@@ -32,10 +35,15 @@ $offboardObjects = @()
             Name = 'Employee Email' ; Expression = { $_.'Employee Email'  }
         }, @{
             Name = 'Prep Status' ; Expression = { $_.'Prep Status' }
+        }, @{
+            Name = 'Supervisor Name' ; Expression = { $_.'Supervisor Name' }
+        }, @{
+            Name = 'Email Forwarding Address' ; Expression = { $_.'Email Forwarding Address'  }
         }
+        # Ad
         # Add the object to the array
         $offboardObjects += $offboardObject
-}
+}#>
 
 
 
@@ -73,22 +81,25 @@ function BlockSignIn{
         AccountEnabled = $false
             }
     update-mguser -Userid $Employeeemail -BodyParameter $params
+    Write-Host "$Employeeemail used in Block Sign in"
     }
 
 
 #2. Sign out of all sessions
 function Signoutofallsessions { 
+    Write-Host "$Employeeemail used in sign out of all sessions in"
     Revoke-MgUserSignInSession -UserId $Employeeemail
 }
 
 #3a. Remove from all Distro Lists
 function RemoveUserfromDistroLists{
+    Write-Host "Removing $Employeeemail from distro lists"
     $Groups = Get-MguserMemberOf -Userid $Employeeemail -property Id
     foreach ($i in $Groups.Id){
 
         # need this for the graph query below; it needs a $ref tacked on at the end. By setting the variable to '$ref' it does not get interpreted as a variable.
         Remove-DistributionGroupMember -Identity $i -Member $Employeeemail -Confirm:$false -ErrorAction SilentlyContinue
-        Write-Output "Removing $Employeeemail from the $i"
+        Write-Output "Removing $Employeeemail from the $i Distro List"
     
     
     }
@@ -97,14 +108,15 @@ function RemoveUserfromDistroLists{
 
 #3b. Remove from all Active Directory Groups
 function RemoveUsersfromADGroups {
-
+        Write-Host "$Employeeemail for removing users from AD groups"
         try {
             $samaccountname = Get-ADUser -Filter {UserPrincipalName -eq $Employeeemail} -Properties samaccountname -ErrorAction Stop
             $groupMembership = $samaccountname | Get-ADPrincipalGroupMembership | Where-Object -Property Name -ne -Value "Domain Users"
             foreach ($group in $groupMembership){
                 Write-Host "Removing $($samaccountname.SamAccountName) from $($group.name)"-ForegroundColor Cyan
+                Remove-ADGroupMember -Identity $group -Members $samaccountname
                 } 
-            $groupMembership | Where-Object -Property name -ne -value "Domain Users" | Remove-ADGroupMember -members $samaccountname -Confirm:$false -ErrorAction Stop -Force
+            
             
         }
         catch {
@@ -115,6 +127,7 @@ function RemoveUsersfromADGroups {
 
 #3b. Remove user from Azure AD Groups
 function RemoveUserFromAzureADGroups{
+    Write-Host "$Employeeemail for removing users from azure AD groups"
     $employeeidpull = Get-mguser -Userid $Employeeemail -property id | Select-Object id
     $employeeid = $employeeidpull.Id
     $Groups = Get-MguserMemberOf -Userid $Employeeemail -property Id
@@ -155,10 +168,10 @@ function DisableUserandmovetoOU  {
 
 #7.Email forwarding 
 function SetForwardingEmail{
-    if($EmailForwarding -eq ""){
+    if($null -eq $EmailForwardingAddress){
         Write-Host "No Email Forwarding Requested"
     }
-    elseif($EmailForwarding -eq "Yes"){
+    elseif($null -ne $EmailForwardingAddress ){
         Set-Mailbox $Employeeemail –ForwardingSmtpAddress $supervisoremail  –DeliverToMailboxAndForward $false
     }
     else{
@@ -169,7 +182,9 @@ function SetForwardingEmail{
 #4a. Mark user as "Termed" in Local AD
 function MarkUserTermedOnprem {
     $samaccountname = Get-ADUser -Filter {UserPrincipalName -eq $Employeeemail} -Properties samaccountname -ErrorAction Stop
-    Set-ADuser $samaccountname -Title "Termed" 
+    
+    Set-ADuser $samaccountname -Title "Termed" -Office $EmployeeLocation 
+    Write-Host "$Employeeemail is this for MarkUserTermedOnprem"
 }
 
 #4b. Mark user as "Termed" in Azure AD
@@ -193,7 +208,7 @@ function RunReportingScript{
 GraphSignin
 EXOSignIn
 
-foreach($obj in $offboarddata){
+foreach($obj in $offboardObjects){
     $Employeeemail = $obj."Employee Email"
     $EmailForwarding = $obj."Email Forwarding"
     $EmailForwardingDuration = $obj."Email Forwarding Duration"
@@ -202,6 +217,9 @@ foreach($obj in $offboarddata){
     $PrepState = $obj."Prep Status"
     $TermDate = $obj."Term Date"
     $termTime = $obj."Term Time"
+    $supervisorname = $obj."Supervisor Name"
+    $supervisoremail = $obj."Email Forwarding Address"
+    $EmployeeLocation = $obj."Employee Location"
     $timenoon = "AM 9-12noon"
     $timeevening = "PM 12-6pm"
     $Month = $TermDate.Substring(0,2)
@@ -220,49 +238,49 @@ foreach($obj in $offboarddata){
         Write-Host "This is unprecedented"
     }
 
-    Write-Host $PrepState
-    Write-Host $Employeeemail
-    Write-Host $EmailForwarding
-    Write-Host $EmailForwardingDuration
-    Write-Host $TicketNumber
-    Write-Host $EmailForwardingAddress
-
     if((Get-date $tasktime) -lt (get-Date)){
         
         $syncstatus = get-mguser -Userid $Employeeemail -Property OnPremisesSyncEnabled | Select-Object OnPremisesSyncEnabled
         if ($PrepState -eq "Ready"){
             if ($syncstatus.OnPremisesSyncEnabled -eq "True"){
-            $obj.'Prep Status' = "Executed"        
-                
-            BlockSignIn
-            Signoutofallsessions
-            MarkUserTermedOnprem
-            SetForwardingEmail
-            RemoveUsersfromADGroups
-            RemoveUserfromDistroLists 
-            RemoveUserFromAzureADGroups
-            $updatedJsonData = $offboarddata | ConvertTo-Json -Depth 10
-            $updatedJsonData | Set-Content -Path $jsonFilePath
-                    
-                }
-            elseif($null -eq $syncstatus.OnPremisesSyncEnabled){
-                    
-                
+                $obj.'Prep Status' = "Executed"        
+                Write-Host "Synced to On Prem"    
                 BlockSignIn
                 Signoutofallsessions
-                MarkUserTermedinAzure
+                MarkUserTermedOnprem
                 SetForwardingEmail
                 RemoveUserfromDistroLists
+                RemoveUsersfromADGroups
+                DisableUserandmovetoOU
                 RemoveUserFromAzureADGroups
                 
                     
+                }
+            elseif($null -eq $syncstatus.OnPremisesSyncEnabled){
+                $obj.'Prep Status' = "Executed"      
+                Write-Host "Not Synced to On Prem"
+                BlockSignIn
+                Signoutofallsessions
+                MarkUserTermedinAzure
+                #SetForwardingEmail
+                RemoveUserfromDistroLists
+                RemoveUserFromAzureADGroups
+                     
+
                 }
             else {
                 Write-Host "Something unprecedented has occured"
                 exit
         }
-    #>
+
     }
     }
+$updatedJsonData = ConvertTo-Json @($offboardObjects) -Depth 10 | Set-Content -Path $jsonFilePath
+
+$updatedJsonData
 }
 
+$pythonScriptPath = "C:\Users\anthonym\Zoho\env\Scripts\Zoho-Desk-Ticket-Management\Ps1toZohoReporter.py"
+
+# Run the Python script using Start-Process
+Start-Process python -ArgumentList $pythonScriptPath -NoNewWindow -Wait

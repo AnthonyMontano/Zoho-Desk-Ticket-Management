@@ -64,6 +64,7 @@ class ManageOffboardingTickets:
                         print('Please refer to zoho api documentation')
             except requests.exceptions.ConnectionError:
                 print("No internet available at the moment please try again later.")
+                exit
 
 
     def getopenoffboardticketcontent(self):
@@ -149,6 +150,4 @@ z.timestamp()
 p = subprocess.Popen(["powershell.exe", 
               "C:\\Users\\anthonym\\Zoho\\env\\Scripts\\Zoho-Desk-Ticket-Management\\UserDataHandling.ps1"], 
               stdout=sys.stdout)
-p.communicate()
-
-        
+p.communicate()      

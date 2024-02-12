@@ -130,17 +130,17 @@ else:
             script1_timestamp = {
                 "isPublic": "true",
                 "contentType": "html",
-                "content": "Please ignore this message this is for testing purposes:%0AScript 1 has pulled this tickets data and the ticket has been set to In Progress",
+                "content": "This is a test run: Script 1 has pulled this tickets data and the ticket has been set to In Progress",
             }
             script2_timestamp = {
                 "isPublic": "true",
                 "contentType": "html",
-                "content": "Please ignore this message this is for testing purposes:\nScript 2 is ready to execute. Pending Term Time...",
+                "content": "This is a test run: Script 2 is ready to execute. Pending Term Time...",
             }
             script3_timestamp = {
                 "isPublic": "true",
                 "contentType": "html",
-                "content": "Script 3 has ran portions of the offboard, Please back up the user in Datto and remove the license",
+                "content": "This is a test run: Script 3 has finished please back up the user in Datto and remove the license",
             }
             script4_timestamp = {
                 "isPublic": "true",
@@ -164,6 +164,7 @@ else:
                 "r"
             ) as existing_file3:
                 existing_data3 = json.load(existing_file3)
+                
                 for entry3 in existing_data3:
                     print(entry3.get("Employee Name"))
                     print(entry3.get("1st Script"))
@@ -177,7 +178,6 @@ else:
                             + existing_data3[self.count]["3rd Script"]
                             + existing_data3[self.count]["4th Script"]
                             + existing_data3[self.count]["5th Script"])
-                
                     comment_url_start = "https://desk.zoho.com/api/v1/tickets/"
                     create_comment_url_middle = entry3.get("Ticket ID")
                     endofcontenturl = "/comments"
@@ -195,7 +195,8 @@ else:
                         case 111:
                             if existing_data3[self.count]["3rd Script"] == 100 and existing_data3[self.count]["Prep Status"] == "Executed":
                                 data1 = json.dumps(script3_timestamp)
-                                self.report(existing_data3,count,create_comment_url,data1)   
+                                self.report(existing_data3,count,create_comment_url,data1)
+                                print("3rd Script == 100 and Prep Status == executed")   
                             else:
                                 continue 
                         case 1111:
@@ -237,8 +238,8 @@ else:
                                 self.count += 1          
                             case 111:               
                                 if exis_data[self.count]["3rd Script"] == 100 and exis_data[self.count]["Prep Status"] == "Executed":
-                                    self.count += 1
                                     exis_data[self.count]["4th Script"] = 1000
+                                    self.count += 1
                                 else:
                                     self.count += 1                                 
                             case 1111:
@@ -281,7 +282,7 @@ else:
             entries_to_move = []
             
             for entry4 in existing_data4:
-                if entry4.get("Employee Email") == "" or entry4.get("5th Script") == 11111:
+                if entry4.get("Employee Email") == "" or entry4.get("5th Script") == 11111 or entry4.get("4th Script") == 1000 :
                     entries_to_move.append(entry4)
                 else:
                     print("hello")
